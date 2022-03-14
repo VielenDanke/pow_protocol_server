@@ -4,6 +4,8 @@ This server based on fibonacci calculation with random number min < random < max
 ### Environment variables:  
 SERVER_NETWORK_TYPE - type of network for server;  
 SERVER_ADDRESS - address of server;  
-SERVER_MAX_DIFFICULTY_LEVEL - maximum of difficulty level in fibonacci (default - 70, max - 1 << 31);  
-SERVER_MIN_DIFFICULTY_LEVEL - minimum of difficulty level in fibonacci (default - 30, min - 1);  
+SERVER_NONCE_NUMBER - number of letters in append nonce (min - 18);  
+SERVER_SALT_NUMBER - number of letters in salt (min - 16);
+SERVER_MIN_REPEAT_NUMBER - min number of repeat computations of proof (min - 2048);  
+SERVER_MAX_REPEAT_NUMBER - max number of repeat computations of proof (max - 4096);  
 
