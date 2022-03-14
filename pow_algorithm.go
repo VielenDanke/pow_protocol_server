@@ -1,9 +1,16 @@
 package main
 
-func fib(n int) int {
-	f, s := 0, 1
-	for i := 0; i < n; i++ {
-		f, s = s, f+s
+import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
+)
+
+func hmacGenerator(password, generatedSalt, updatedNonce string, repeatedNumber int, preCalculatedProofCh chan<- string) {
+	saltNonce := generatedSalt + updatedNonce
+	h := hmac.New(sha1.New, []byte(password))
+	for i := 0; i < repeatedNumber; i++ {
+		h.Write([]byte(saltNonce))
 	}
-	return f
+	preCalculatedProofCh <- hex.EncodeToString(h.Sum(nil))
 }

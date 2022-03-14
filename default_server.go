@@ -2,9 +2,6 @@ package main
 
 import (
 	"bufio"
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"math/rand"
@@ -32,6 +29,11 @@ type DefaultServer struct {
 	saltNumber            int
 	networkType           string
 	address               string
+}
+
+func init() {
+	users = make(map[string]*user)
+	users["user"] = &user{password: "password"}
 }
 
 func NewDefaultServer(networkType, address string) (Server, error) {
@@ -171,14 +173,7 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 
 	preCalculatedProofCh := make(chan string, 1)
 
-	go func(password, generatedSalt, updatedNonce string, repeatedNumber int, preCalculatedProofCh chan<- string) {
-		saltNonce := generatedSalt + updatedNonce
-		h := hmac.New(sha1.New, []byte(password))
-		for i := 0; i < repeatedNumber; i++ {
-			h.Write([]byte(saltNonce))
-		}
-		preCalculatedProofCh <- hex.EncodeToString(h.Sum(nil))
-	}(currentUser.password, generatedSalt, updatedNonce, repeatedNumber, preCalculatedProofCh)
+	go hmacGenerator(currentUser.password, generatedSalt, updatedNonce, repeatedNumber, preCalculatedProofCh)
 
 	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s,%d",
 		updatedNonce,
@@ -202,6 +197,10 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 
 	if returnedNonce != updatedNonce {
 		log.Println("ERROR: nonce is changed - close")
+		_, writeErr = conn.Write([]byte{})
+		if writeErr != nil {
+			log.Println("ERROR: cannot write to response - close")
+		}
 		return
 	}
 	preCalculatedProof = <-preCalculatedProofCh
@@ -210,6 +209,10 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 
 	if proof != preCalculatedProof {
 		log.Println("ERROR: proof is not valid - close")
+		_, writeErr = conn.Write([]byte{})
+		if writeErr != nil {
+			log.Println("ERROR: cannot write to response - close")
+		}
 		return
 	}
 	_, writeErr = conn.Write([]byte(wisdomWords[rand.Int31()%int32(len(wisdomWords))]))
