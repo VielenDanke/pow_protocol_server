@@ -86,7 +86,14 @@ func NewDefaultServer(networkType, address string) (Server, error) {
 }
 
 func (ds *DefaultServer) Start() error {
-	file, _ := os.Open("wisdom_words.txt")
+	wisdomWordsFilename := os.Getenv("WISDOM_WORDS_FILE_PATH")
+
+	file, fileErr := os.Open(wisdomWordsFilename)
+
+	if fileErr != nil {
+		log.Printf("ERROR: wisdom words config file is empty %s\n", fileErr)
+		return fileErr
+	}
 
 	reader := bufio.NewScanner(file)
 
