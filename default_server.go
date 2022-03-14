@@ -16,6 +16,8 @@ import (
 	"syscall"
 )
 
+// For user storage we should use one of SQL or NoSQL storages instead
+// but for now to make things simpler using map[string]*user
 var users map[string]*user
 var wisdomWords = make([]string, 0)
 var defaultNonceNumber = 18
