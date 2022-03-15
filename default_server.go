@@ -14,7 +14,7 @@ import (
 
 // For user storage we should use one of SQL or NoSQL storages instead
 // but for now to make things simpler using map[string]*user
-var users map[string]*user
+var users = make(map[string]*user)
 var wisdomWords = make([]string, 0)
 var defaultNonceNumber = 18
 var defaultSaltNumber = 16
@@ -52,20 +52,34 @@ func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server
 
 func (ds *DefaultServer) Start() error {
 	wisdomWordsFilename := os.Getenv("WISDOM_WORDS_FILE_PATH")
+	usersFiles := os.Getenv("USER_FILE_PATH")
 
-	file, fileErr := os.Open(wisdomWordsFilename)
+	wisdomFile, wisdomFileErr := os.Open(wisdomWordsFilename)
 
-	if fileErr != nil {
-		log.Printf("ERROR: wisdom words config file is empty %s\n", fileErr)
-		return fileErr
+	if wisdomFileErr != nil {
+		log.Printf("ERROR: wisdom words config wisdomFile error %s\n", wisdomFileErr)
+		return wisdomFileErr
 	}
 
-	reader := bufio.NewScanner(file)
+	userFile, userFileErr := os.Open(usersFiles)
 
-	for reader.Scan() {
-		wisdomPhrase := strings.Split(reader.Text(), "~")[0]
+	if userFileErr != nil {
+		log.Printf("ERROR: user config userFile error %s\n", userFileErr)
+		return userFileErr
+	}
+
+	wisdomFileScanner := bufio.NewScanner(wisdomFile)
+
+	for wisdomFileScanner.Scan() {
+		wisdomPhrase := strings.Split(wisdomFileScanner.Text(), "~")[0]
 		wisdomPhrase = strings.Trim(wisdomPhrase, " ")
 		wisdomWords = append(wisdomWords, wisdomPhrase)
+	}
+	userFileScanner := bufio.NewScanner(userFile)
+
+	for userFileScanner.Scan() {
+		userProperty := strings.Split(userFileScanner.Text(), "=")
+		users[userProperty[0]] = &user{password: userProperty[1]}
 	}
 	l, listenErr := net.Listen(ds.networkType, ds.address)
 
