@@ -51,34 +51,36 @@ func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server
 }
 
 func (ds *DefaultServer) Start() error {
+	// for config we could use separate custom interface with methods Read() Parse()
+	// for simplicity - open and parse file here
 	wisdomWordsFilename := os.Getenv("WISDOM_WORDS_FILE_PATH")
 	usersFiles := os.Getenv("USER_FILE_PATH")
 
-	wisdomFile, wisdomFileErr := os.Open(wisdomWordsFilename)
+	file, fileErr := os.Open(wisdomWordsFilename)
 
-	if wisdomFileErr != nil {
-		log.Printf("ERROR: wisdom words config wisdomFile error %s\n", wisdomFileErr)
-		return wisdomFileErr
+	if fileErr != nil {
+		log.Printf("ERROR: wisdom words config wisdomFile error %s\n", fileErr)
+		return fileErr
 	}
+	fileScanner := bufio.NewScanner(file)
 
-	userFile, userFileErr := os.Open(usersFiles)
-
-	if userFileErr != nil {
-		log.Printf("ERROR: user config userFile error %s\n", userFileErr)
-		return userFileErr
-	}
-
-	wisdomFileScanner := bufio.NewScanner(wisdomFile)
-
-	for wisdomFileScanner.Scan() {
-		wisdomPhrase := strings.Split(wisdomFileScanner.Text(), "~")[0]
+	for fileScanner.Scan() {
+		wisdomPhrase := strings.Split(fileScanner.Text(), "~")[0]
 		wisdomPhrase = strings.Trim(wisdomPhrase, " ")
 		wisdomWords = append(wisdomWords, wisdomPhrase)
 	}
-	userFileScanner := bufio.NewScanner(userFile)
 
-	for userFileScanner.Scan() {
-		userProperty := strings.Split(userFileScanner.Text(), "=")
+	file, fileErr = os.Open(usersFiles)
+
+	if fileErr != nil {
+		log.Printf("ERROR: user config userFile error %s\n", fileErr)
+		return fileErr
+	}
+
+	fileScanner = bufio.NewScanner(file)
+
+	for fileScanner.Scan() {
+		userProperty := strings.Split(fileScanner.Text(), "=")
 		users[userProperty[0]] = &user{password: userProperty[1]}
 	}
 	l, listenErr := net.Listen(ds.networkType, ds.address)
