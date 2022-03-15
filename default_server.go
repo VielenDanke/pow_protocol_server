@@ -171,9 +171,11 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 	generatedSalt := randomStringGenerator(ds.saltNumber)
 	repeatedNumber := rand.Intn((ds.serverMaxRepeatNumber - ds.serverMinRepeatNumber + 1) + ds.serverMinRepeatNumber)
 
-	preCalculatedProofCh := make(chan string, 1)
+	clientProofCh := make(chan string, 1)
+	serverProofCh := make(chan string, 1)
 
-	go hmacGenerator(currentUser.password, generatedSalt, updatedNonce, repeatedNumber, preCalculatedProofCh)
+	go hmacGenerator(currentUser.password, generatedSalt, updatedNonce, repeatedNumber, clientProofCh)
+	go hmacGenerator(currentUser.password, generatedSalt, nonce, repeatedNumber, serverProofCh)
 
 	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s,%d",
 		updatedNonce,
@@ -190,7 +192,7 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 		log.Println("ERROR: reading from connection is failed - close")
 		return
 	}
-	clientSecondMessageArr = strings.Split(string(buff[:readLen]), ",")
+	clientSecondMessageArr, buff = strings.Split(string(buff[:readLen]), ","), buff[readLen+1:]
 
 	returnedNonce := clientSecondMessageArr[0]
 	proof := clientSecondMessageArr[1]
@@ -203,9 +205,9 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 		}
 		return
 	}
-	preCalculatedProof = <-preCalculatedProofCh
+	preCalculatedProof = <-clientProofCh
 
-	close(preCalculatedProofCh)
+	close(clientProofCh)
 
 	if proof != preCalculatedProof {
 		log.Println("ERROR: proof is not valid - close")
@@ -213,6 +215,20 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 		if writeErr != nil {
 			log.Println("ERROR: cannot write to response - close")
 		}
+		return
+	}
+	serverProof := <-serverProofCh
+
+	_, writeErr = conn.Write([]byte(serverProof))
+
+	if writeErr != nil {
+		log.Println("ERROR: cannot write server proof")
+		return
+	}
+	_, readErr = conn.Read(buff)
+
+	if readErr != nil {
+		log.Println("ERROR: not a valid proof - close")
 		return
 	}
 	_, writeErr = conn.Write([]byte(wisdomWords[rand.Int31()%int32(len(wisdomWords))]))
