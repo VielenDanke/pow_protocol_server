@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 )
@@ -31,12 +30,7 @@ type DefaultServer struct {
 	address               string
 }
 
-func init() {
-	users = make(map[string]*user)
-	users["user"] = &user{password: "password"}
-}
-
-func NewDefaultServer(networkType, address string) (Server, error) {
+func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server, error) {
 	ds := &DefaultServer{
 		networkType:           networkType,
 		address:               address,
@@ -45,41 +39,8 @@ func NewDefaultServer(networkType, address string) (Server, error) {
 		nonceNumber:           defaultNonceNumber,
 		saltNumber:            defaultSaltNumber,
 	}
-	if nonceNumber := os.Getenv("SERVER_NONCE_NUMBER"); len(nonceNumber) != 0 {
-		nonceNumberFromEnv, nonceNumberParseErr := strconv.Atoi(nonceNumber)
-		if nonceNumberParseErr != nil {
-			return nil, nonceNumberParseErr
-		}
-		if nonceNumberFromEnv > defaultNonceNumber {
-			ds.nonceNumber = nonceNumberFromEnv
-		}
-	}
-	if saltNumber := os.Getenv("SERVER_SALT_NUMBER"); len(saltNumber) != 0 {
-		saltNumberFromEnv, saltNumberParseErr := strconv.Atoi(saltNumber)
-		if saltNumberParseErr != nil {
-			return nil, saltNumberParseErr
-		}
-		if saltNumberFromEnv > defaultSaltNumber {
-			ds.saltNumber = saltNumberFromEnv
-		}
-	}
-	if serverMaxRepeatNum := os.Getenv("SERVER_MAX_REPEAT_NUMBER"); len(serverMaxRepeatNum) != 0 {
-		serverMaxRepeatNumEnv, serverMaxRepeatNumErr := strconv.Atoi(serverMaxRepeatNum)
-		if serverMaxRepeatNumErr != nil {
-			return nil, serverMaxRepeatNumErr
-		}
-		if serverMaxRepeatNumEnv < defaultServerMaxRepeatNumber && serverMaxRepeatNumEnv > defaultServerMinRepeatNumber {
-			ds.serverMaxRepeatNumber = serverMaxRepeatNumEnv
-		}
-	}
-	if serverMinRepeatNum := os.Getenv("SERVER_MIN_REPEAT_NUMBER"); len(serverMinRepeatNum) != 0 {
-		serverMinRepeatNumEnv, serverMinRepeatNumErr := strconv.Atoi(serverMinRepeatNum)
-		if serverMinRepeatNumErr != nil {
-			return nil, serverMinRepeatNumErr
-		}
-		if serverMinRepeatNumEnv > defaultServerMinRepeatNumber && serverMinRepeatNumEnv < defaultServerMaxRepeatNumber {
-			ds.serverMinRepeatNumber = serverMinRepeatNumEnv
-		}
+	for _, v := range opts {
+		v(ds)
 	}
 	if ds.serverMaxRepeatNumber < ds.serverMinRepeatNumber {
 		log.Println("WARN: min server repeat number cannot be greater than max - set defaults")
@@ -132,12 +93,12 @@ func (ds *DefaultServer) Start() error {
 			if acceptErr != nil {
 				return acceptErr
 			}
-			go ds.handleConn(conn, ch)
+			go ds.HandleConn(conn, ch)
 		}
 	}
 }
 
-func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
+func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 	log.Printf("INFO: connection from %s is accepted\n", conn.RemoteAddr().String())
 
 	defer func() {
@@ -239,13 +200,18 @@ func (ds *DefaultServer) handleConn(conn net.Conn, ch chan<- error) {
 	}
 }
 
-func (ds *DefaultServer) validateResult(rightAnswer, result interface{}) bool {
-	intResult, convErr := strconv.Atoi(result.(string))
-	intRightAnswer, _ := rightAnswer.(int64)
+func (ds *DefaultServer) SetSaltNumber(saltNumber int) {
+	ds.saltNumber = saltNumber
+}
 
-	if convErr != nil {
-		log.Println("Incorrect result type")
-		return false
-	}
-	return int64(intResult) == intRightAnswer
+func (ds *DefaultServer) SetNonceNumber(nonceNumber int) {
+	ds.nonceNumber = nonceNumber
+}
+
+func (ds *DefaultServer) SetMaxRepeatNumber(maxNumber int) {
+	ds.serverMaxRepeatNumber = maxNumber
+}
+
+func (ds *DefaultServer) SetMinRepeatNumber(minNumber int) {
+	ds.serverMinRepeatNumber = minNumber
 }

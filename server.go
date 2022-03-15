@@ -5,7 +5,10 @@ import (
 )
 
 type Server interface {
-	handleConn(conn net.Conn, ch chan<- error)
+	HandleConn(conn net.Conn, ch chan<- error)
 	Start() error
-	validateResult(rightAnswer, result interface{}) bool
+	SetSaltNumber(saltNumber int)
+	SetNonceNumber(nonceNumber int)
+	SetMaxRepeatNumber(maxNumber int)
+	SetMinRepeatNumber(minNumber int)
 }
