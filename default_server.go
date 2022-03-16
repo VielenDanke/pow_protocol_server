@@ -115,6 +115,12 @@ func (ds *DefaultServer) Start() error {
 }
 
 func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
+	var readLen int
+	var readErr, writeErr error
+	var clientFirstMessageArr []string
+	var clientSecondMessageArr []string
+	var preCalculatedProof string
+
 	log.Printf("INFO: connection from %s is accepted\n", conn.RemoteAddr().String())
 
 	defer func() {
@@ -122,12 +128,6 @@ func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 			ch <- fmt.Errorf("ERROR: cannot close connection %s", closeErr)
 		}
 	}()
-
-	var readLen int
-	var readErr, writeErr error
-	var clientFirstMessageArr []string
-	var clientSecondMessageArr []string
-	var preCalculatedProof string
 
 	buff := make([]byte, 1024)
 
