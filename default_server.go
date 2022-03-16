@@ -196,7 +196,7 @@ func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 	}
 	serverProof := <-serverProofCh
 
-	_, writeErr = conn.Write([]byte(serverProof))
+	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s", nonce, serverProof)))
 
 	if writeErr != nil {
 		log.Println("ERROR: cannot write server proof")

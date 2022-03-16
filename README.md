@@ -1,5 +1,11 @@
 # Proof Of Work challenge-response protocol server
 
+### Protocol description
+Client -> Server (message in format {username},{nonce})  
+Server -> Client (message in format {nonce + server_nonce},{repeat_number})   
+Client -> Server (message in format {nonce + server_nonce},{proof_of_work calculated with nonce + server_nonce})   
+Server -> Client (message in format {nonce},{proof_of_work calculated using client nonce}).   
+
 ### Environment variables:  
 SERVER_NETWORK_TYPE - type of network for server (default tcp);  
 WISDOM_WORDS_FILE_PATH - path to wisdom words file;
