@@ -18,9 +18,17 @@ By default, wisdom words file is expected to be in format:
 If you want to achieve greatness stop asking for permission. ~Anonymous
 Things work out best for those who make the best of how things work out. ~John Wooden
 ````
+Be aware of restrictions for salt, nonce symbols amount and min/max repeat number:
+````go
+var defaultNonceNumber = 18 // not less than
+var defaultSaltNumber = 16 // not less than
+var defaultServerMaxRepeatNumber = 4096 // not more than
+var defaultServerMinRepeatNumber = 2048 // not less than
+````
 
 ### Options
-To supply headers above - use options (type ServerOption func(s Server)) in server_option.go file.   
+To supply headers above or configuration for nonce, salt symbols amount, min and max repeat number - 
+use options (type ServerOption func(s Server)) in server_option.go file.   
 Some examples below:   
 ````go
 package main
