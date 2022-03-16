@@ -18,3 +18,32 @@ By default, wisdom words file is expected to be in format:
 If you want to achieve greatness stop asking for permission. ~Anonymous
 Things work out best for those who make the best of how things work out. ~John Wooden
 ````
+
+### Options
+To supply headers above - use options (type ServerOption func(s Server)) in server_option.go file.   
+Some examples below:   
+````go
+package main
+
+type ServerOption func(s Server)
+
+func WithServerNonceNumber(serverNonceNumber int) ServerOption {
+	return func(s Server) {
+		if serverNonceNumber < defaultNonceNumber {
+			log.Printf("WARN: server nonce number cannot be less than %d\n", defaultNonceNumber)
+		} else {
+			s.SetNonceNumber(serverNonceNumber)
+		}
+	}
+}
+
+func WithServerSaltNumber(serverSaltNumber int) ServerOption {
+	return func(s Server) {
+		if serverSaltNumber < defaultSaltNumber {
+			log.Printf("WARN: server salt number cannot be less than %d\n", defaultSaltNumber)
+		} else {
+			s.SetSaltNumber(serverSaltNumber)
+		}
+	}
+}
+````
