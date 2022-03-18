@@ -15,6 +15,8 @@ func TestDefaultServer_Start(t *testing.T) {
 	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
 	ctx, cancel := context.WithCancel(context.Background())
 
+	defer os.Clearenv()
+
 	cancel()
 
 	// when
@@ -31,6 +33,8 @@ func TestDefaultServer_Start_UserFilePathIsEmpty(t *testing.T) {
 	server, _ := NewDefaultServer("", "")
 	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
 
+	defer os.Clearenv()
+
 	// when
 	err := server.Start(context.Background())
 
@@ -44,6 +48,7 @@ func TestDefaultServer_Start_WisdomWordsFilePathIsEmpty(t *testing.T) {
 	os.Setenv("USER_FILE_PATH", "users.txt")
 	ctx, cancel := context.WithCancel(context.Background())
 
+	defer os.Clearenv()
 	cancel()
 
 	// when
@@ -62,6 +67,7 @@ func TestDefaultServer_Start_WithCustomAddressAndNetwork(t *testing.T) {
 	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
 	ctx, cancel := context.WithCancel(context.Background())
 
+	defer os.Clearenv()
 	cancel()
 
 	// when
@@ -80,6 +86,8 @@ func TestDefaultServer_HandleConn(t *testing.T) {
 	server, err := NewDefaultServer("", "")
 	ch := make(chan error, 1)
 	conn := mocks.NewCustomConn()
+
+	defer os.Clearenv()
 
 	// when
 	server.HandleConn(conn, ch)
