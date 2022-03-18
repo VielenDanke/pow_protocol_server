@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -20,6 +21,8 @@ var defaultNonceNumber = 18
 var defaultSaltNumber = 16
 var defaultServerMaxRepeatNumber = 4096
 var defaultServerMinRepeatNumber = 2048
+var defaultAddress = ":8080"
+var defaultNetworkType = "tcp"
 
 type DefaultServer struct {
 	serverMinRepeatNumber int
@@ -47,10 +50,12 @@ func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server
 		ds.serverMaxRepeatNumber = defaultServerMaxRepeatNumber
 		ds.serverMinRepeatNumber = defaultServerMinRepeatNumber
 	}
-	return ds, nil
-}
-
-func (ds *DefaultServer) Start() error {
+	if len(ds.networkType) == 0 {
+		ds.networkType = defaultNetworkType
+	}
+	if len(ds.address) == 0 {
+		ds.address = defaultAddress
+	}
 	// for config we could use separate custom interface with methods Read() Parse()
 	// for simplicity - open and parse file here
 	wisdomWordsFilename := os.Getenv("WISDOM_WORDS_FILE_PATH")
@@ -60,7 +65,7 @@ func (ds *DefaultServer) Start() error {
 
 	if fileErr != nil {
 		log.Printf("ERROR: wisdom words config wisdomFile error %s\n", fileErr)
-		return fileErr
+		return nil, fileErr
 	}
 	fileScanner := bufio.NewScanner(file)
 
@@ -74,7 +79,7 @@ func (ds *DefaultServer) Start() error {
 
 	if fileErr != nil {
 		log.Printf("ERROR: user config userFile error %s\n", fileErr)
-		return fileErr
+		return nil, fileErr
 	}
 
 	fileScanner = bufio.NewScanner(file)
@@ -83,6 +88,10 @@ func (ds *DefaultServer) Start() error {
 		userProperty := strings.Split(fileScanner.Text(), "=")
 		users[userProperty[0]] = &user{password: userProperty[1]}
 	}
+	return ds, nil
+}
+
+func (ds *DefaultServer) Start(ctx context.Context) error {
 	l, listenErr := net.Listen(ds.networkType, ds.address)
 
 	log.Printf("INFO: server network type: %s\n", ds.networkType)
@@ -101,6 +110,9 @@ func (ds *DefaultServer) Start() error {
 
 	for {
 		select {
+		case <-ctx.Done():
+			log.Println("INFO: context canceled")
+			return nil
 		case err := <-ch:
 			return err
 		default:
@@ -230,4 +242,28 @@ func (ds *DefaultServer) SetMaxRepeatNumber(maxNumber int) {
 
 func (ds *DefaultServer) SetMinRepeatNumber(minNumber int) {
 	ds.serverMinRepeatNumber = minNumber
+}
+
+func (ds *DefaultServer) GetMaxRepeatNumber() int {
+	return ds.serverMaxRepeatNumber
+}
+
+func (ds *DefaultServer) GetNonceNumber() int {
+	return ds.nonceNumber
+}
+
+func (ds *DefaultServer) GetSaltNumber() int {
+	return ds.saltNumber
+}
+
+func (ds *DefaultServer) GetMinRepeatNumber() int {
+	return ds.serverMinRepeatNumber
+}
+
+func (ds *DefaultServer) GetNetworkType() string {
+	return ds.networkType
+}
+
+func (ds *DefaultServer) GetAddress() string {
+	return ds.address
 }

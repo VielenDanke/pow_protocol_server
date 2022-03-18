@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 )
@@ -13,5 +14,5 @@ func main() {
 		log.Printf("ERROR: cannot start server due to error: %s\n", dsErr)
 		return
 	}
-	log.Printf("INFO: Server stopped: %s", ds.Start())
+	log.Printf("INFO: Server stopped: %s", ds.Start(context.Background()))
 }
