@@ -162,11 +162,7 @@ func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 	generatedSalt := powalgo.RandomStringGenerator(ds.saltNumber)
 	repeatedNumber := rand.Intn((ds.serverMaxRepeatNumber - ds.serverMinRepeatNumber + 1) + ds.serverMinRepeatNumber)
 
-	clientProofCh := make(chan string, 1)
-	serverProofCh := make(chan string, 1)
-
-	go powalgo.HMACGenerator(currentUser.GetPassword(), generatedSalt, updatedNonce, repeatedNumber, clientProofCh)
-	go powalgo.HMACGenerator(currentUser.GetPassword(), generatedSalt, nonce, repeatedNumber, serverProofCh)
+	preCalculatedProof = powalgo.HMACGenerator(currentUser.GetPassword(), generatedSalt, updatedNonce, repeatedNumber)
 
 	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s,%d",
 		updatedNonce,
@@ -196,30 +192,12 @@ func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 		}
 		return
 	}
-	preCalculatedProof = <-clientProofCh
-
-	close(clientProofCh)
-
 	if proof != preCalculatedProof {
 		log.Println("ERROR: proof is not valid - close")
 		_, writeErr = conn.Write([]byte{})
 		if writeErr != nil {
 			log.Println("ERROR: cannot write to response - close")
 		}
-		return
-	}
-	serverProof := <-serverProofCh
-
-	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s", nonce, serverProof)))
-
-	if writeErr != nil {
-		log.Println("ERROR: cannot write server proof")
-		return
-	}
-	_, readErr = conn.Read(buff)
-
-	if readErr != nil {
-		log.Println("ERROR: not a valid proof - close")
 		return
 	}
 	_, writeErr = conn.Write([]byte(wisdomWords[rand.Int31()%int32(len(wisdomWords))]))
