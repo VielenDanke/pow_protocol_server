@@ -1,4 +1,4 @@
-package main
+package powalgo
 
 import (
 	"crypto/hmac"
@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 )
 
-func hmacGenerator(password, generatedSalt, updatedNonce string, repeatedNumber int, preCalculatedProofCh chan<- string) {
+func HMACGenerator(password, generatedSalt, updatedNonce string, repeatedNumber int, preCalculatedProofCh chan<- string) {
 	saltNonce := generatedSalt + updatedNonce
 	h := hmac.New(sha1.New, []byte(password))
 	for i := 0; i < repeatedNumber; i++ {

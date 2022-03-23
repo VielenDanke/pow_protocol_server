@@ -1,4 +1,4 @@
-package main
+package powalgo
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestRandomStringGenerator(t *testing.T) {
 
 	for _, v := range tests {
 		// when
-		str := randomStringGenerator(v.lenOfStr)
+		str := RandomStringGenerator(v.lenOfStr)
 
 		// then
 		if v.success {

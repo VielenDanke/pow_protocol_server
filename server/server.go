@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -9,7 +9,7 @@ type CustomConn interface {
 	net.Conn
 }
 
-type ServerOptions interface {
+type serverOptions interface {
 	SetSaltNumber(saltNumber int)
 	SetNonceNumber(nonceNumber int)
 	SetMaxRepeatNumber(maxNumber int)
@@ -25,5 +25,5 @@ type ServerOptions interface {
 type Server interface {
 	HandleConn(conn net.Conn, ch chan<- error)
 	Start(ctx context.Context) error
-	ServerOptions
+	serverOptions
 }

@@ -1,13 +1,18 @@
-package main
+package server
 
 import (
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
 func TestWithServerMaxRepeatNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	maxRepeatNumber := 4096
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerMaxRepeatNumber(maxRepeatNumber))
@@ -19,7 +24,11 @@ func TestWithServerMaxRepeatNumber(t *testing.T) {
 
 func TestWithServerMaxRepeatNumber_IncorrectMaxNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	maxRepeatNumber := 5555
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerMaxRepeatNumber(maxRepeatNumber))
@@ -32,7 +41,11 @@ func TestWithServerMaxRepeatNumber_IncorrectMaxNumber(t *testing.T) {
 
 func TestWithServerMinRepeatNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	minRepeatNumber := 2144
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerMinRepeatNumber(minRepeatNumber))
@@ -44,7 +57,11 @@ func TestWithServerMinRepeatNumber(t *testing.T) {
 
 func TestWithServerMinRepeatNumber_IncorrectMinNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	minRepeatNumber := 1000
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerMinRepeatNumber(minRepeatNumber))
@@ -57,7 +74,11 @@ func TestWithServerMinRepeatNumber_IncorrectMinNumber(t *testing.T) {
 
 func TestWithServerNonceNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	nonceNumber := 24
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerNonceNumber(nonceNumber))
@@ -69,7 +90,11 @@ func TestWithServerNonceNumber(t *testing.T) {
 
 func TestWithServerNonceNumber_IncorrectNonceNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	nonceNumber := 1
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerNonceNumber(nonceNumber))
@@ -82,7 +107,11 @@ func TestWithServerNonceNumber_IncorrectNonceNumber(t *testing.T) {
 
 func TestWithServerSaltNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	saltNumber := 24
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerSaltNumber(saltNumber))
@@ -94,7 +123,11 @@ func TestWithServerSaltNumber(t *testing.T) {
 
 func TestWithServerSaltNumber_IncorrectSaltNumber(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	saltNumber := 1
+
+	defer os.Clearenv()
 
 	// when
 	server, err := NewDefaultServer("", "", WithServerSaltNumber(saltNumber))

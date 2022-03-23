@@ -1,9 +1,11 @@
-package main
+package server
 
 import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/vielendanke/pow_protocol_server/powalgo"
+	"github.com/vielendanke/pow_protocol_server/user"
 	"log"
 	"math/rand"
 	"net"
@@ -15,7 +17,7 @@ import (
 
 // For user storage we should use one of SQL or NoSQL storages instead
 // but for now to make things simpler using map[string]*user
-var users = make(map[string]*user)
+var users = make(map[string]*user.User)
 var wisdomWords = make([]string, 0)
 var defaultNonceNumber = 18
 var defaultSaltNumber = 16
@@ -33,7 +35,7 @@ type DefaultServer struct {
 	address               string
 }
 
-func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server, error) {
+func NewDefaultServer(networkType, address string, opts ...serverOption) (Server, error) {
 	ds := &DefaultServer{
 		networkType:           networkType,
 		address:               address,
@@ -86,7 +88,7 @@ func NewDefaultServer(networkType, address string, opts ...ServerOption) (Server
 
 	for fileScanner.Scan() {
 		userProperty := strings.Split(fileScanner.Text(), "=")
-		users[userProperty[0]] = &user{password: userProperty[1]}
+		users[userProperty[0]] = user.NewUser(userProperty[1])
 	}
 	return ds, nil
 }
@@ -156,15 +158,15 @@ func (ds *DefaultServer) HandleConn(conn net.Conn, ch chan<- error) {
 
 	currentUser := users[username]
 
-	updatedNonce := nonce + randomStringGenerator(ds.nonceNumber)
-	generatedSalt := randomStringGenerator(ds.saltNumber)
+	updatedNonce := nonce + powalgo.RandomStringGenerator(ds.nonceNumber)
+	generatedSalt := powalgo.RandomStringGenerator(ds.saltNumber)
 	repeatedNumber := rand.Intn((ds.serverMaxRepeatNumber - ds.serverMinRepeatNumber + 1) + ds.serverMinRepeatNumber)
 
 	clientProofCh := make(chan string, 1)
 	serverProofCh := make(chan string, 1)
 
-	go hmacGenerator(currentUser.password, generatedSalt, updatedNonce, repeatedNumber, clientProofCh)
-	go hmacGenerator(currentUser.password, generatedSalt, nonce, repeatedNumber, serverProofCh)
+	go powalgo.HMACGenerator(currentUser.GetPassword(), generatedSalt, updatedNonce, repeatedNumber, clientProofCh)
+	go powalgo.HMACGenerator(currentUser.GetPassword(), generatedSalt, nonce, repeatedNumber, serverProofCh)
 
 	_, writeErr = conn.Write([]byte(fmt.Sprintf("%s,%s,%d",
 		updatedNonce,

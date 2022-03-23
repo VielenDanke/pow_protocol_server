@@ -1,4 +1,4 @@
-package main
+package user
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -10,8 +10,8 @@ func TestUserCreate(t *testing.T) {
 	password := "bla"
 
 	// when
-	u := &user{password: password}
+	u := NewUser(password)
 
 	// then
-	assert.Equal(t, password, u.password)
+	assert.Equal(t, password, u.GetPassword())
 }

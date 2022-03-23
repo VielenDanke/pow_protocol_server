@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 
 func TestDefaultServer_Start(t *testing.T) {
 	// given
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	server, _ := NewDefaultServer("", "")
-	os.Setenv("USER_FILE_PATH", "users.txt")
-	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer os.Clearenv()
@@ -30,13 +30,12 @@ func TestDefaultServer_Start(t *testing.T) {
 
 func TestDefaultServer_Start_UserFilePathIsEmpty(t *testing.T) {
 	// given
-	server, _ := NewDefaultServer("", "")
-	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 
 	defer os.Clearenv()
 
 	// when
-	err := server.Start(context.Background())
+	_, err := NewDefaultServer("", "")
 
 	// then
 	assert.NotNil(t, err)
@@ -44,15 +43,12 @@ func TestDefaultServer_Start_UserFilePathIsEmpty(t *testing.T) {
 
 func TestDefaultServer_Start_WisdomWordsFilePathIsEmpty(t *testing.T) {
 	// given
-	server, _ := NewDefaultServer("", "")
-	os.Setenv("USER_FILE_PATH", "users.txt")
-	ctx, cancel := context.WithCancel(context.Background())
+	os.Setenv("USER_FILE_PATH", "../users.txt")
 
 	defer os.Clearenv()
-	cancel()
 
 	// when
-	err := server.Start(ctx)
+	_, err := NewDefaultServer("", "")
 
 	// then
 	assert.NotNil(t, err)
@@ -62,9 +58,9 @@ func TestDefaultServer_Start_WithCustomAddressAndNetwork(t *testing.T) {
 	// given
 	networkType := "tcp4"
 	address := ":8090"
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
+	os.Setenv("USER_FILE_PATH", "../users.txt")
 	server, _ := NewDefaultServer(networkType, address)
-	os.Setenv("USER_FILE_PATH", "users.txt")
-	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer os.Clearenv()
@@ -81,8 +77,8 @@ func TestDefaultServer_Start_WithCustomAddressAndNetwork(t *testing.T) {
 
 func TestDefaultServer_HandleConn(t *testing.T) {
 	// given
-	os.Setenv("USER_FILE_PATH", "users.txt")
-	os.Setenv("WISDOM_WORDS_FILE_PATH", "wisdom_words.txt")
+	os.Setenv("USER_FILE_PATH", "../users.txt")
+	os.Setenv("WISDOM_WORDS_FILE_PATH", "../wisdom_words.txt")
 	server, err := NewDefaultServer("", "")
 	ch := make(chan error, 1)
 	conn := mocks.NewCustomConn()

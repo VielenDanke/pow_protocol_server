@@ -1,10 +1,12 @@
-package main
+package server
 
-import "log"
+import (
+	"log"
+)
 
-type ServerOption func(s Server)
+type serverOption func(s Server)
 
-func WithServerNonceNumber(serverNonceNumber int) ServerOption {
+func WithServerNonceNumber(serverNonceNumber int) serverOption {
 	return func(s Server) {
 		if serverNonceNumber < defaultNonceNumber {
 			log.Printf("WARN: server nonce number cannot be less than %d\n", defaultNonceNumber)
@@ -14,7 +16,7 @@ func WithServerNonceNumber(serverNonceNumber int) ServerOption {
 	}
 }
 
-func WithServerSaltNumber(serverSaltNumber int) ServerOption {
+func WithServerSaltNumber(serverSaltNumber int) serverOption {
 	return func(s Server) {
 		if serverSaltNumber < defaultSaltNumber {
 			log.Printf("WARN: server salt number cannot be less than %d\n", defaultSaltNumber)
@@ -24,7 +26,7 @@ func WithServerSaltNumber(serverSaltNumber int) ServerOption {
 	}
 }
 
-func WithServerMaxRepeatNumber(serverMaxRepeatNumber int) ServerOption {
+func WithServerMaxRepeatNumber(serverMaxRepeatNumber int) serverOption {
 	return func(s Server) {
 		if serverMaxRepeatNumber < defaultServerMaxRepeatNumber && serverMaxRepeatNumber > defaultServerMinRepeatNumber {
 			s.SetMaxRepeatNumber(serverMaxRepeatNumber)
@@ -35,7 +37,7 @@ func WithServerMaxRepeatNumber(serverMaxRepeatNumber int) ServerOption {
 	}
 }
 
-func WithServerMinRepeatNumber(serverMinRepeatNumber int) ServerOption {
+func WithServerMinRepeatNumber(serverMinRepeatNumber int) serverOption {
 	return func(s Server) {
 		if serverMinRepeatNumber > defaultServerMinRepeatNumber && serverMinRepeatNumber < defaultServerMaxRepeatNumber {
 			s.SetMinRepeatNumber(serverMinRepeatNumber)
